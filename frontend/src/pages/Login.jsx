@@ -1,12 +1,14 @@
-"use client"
-
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
-function Login() {
+function Login({ setAuthState }) {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   })
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -14,12 +16,53 @@ function Login() {
       ...formData,
       [name]: value,
     })
+    // Limpiar mensaje de error cuando el usuario comienza a escribir
+    if (error) setError("")
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("Datos de inicio de sesión:", formData)
-    // Aquí implementaremos la lógica de autenticación más adelante
+    setError("")
+    setIsLoading(true)
+
+    try {
+      console.log("Enviando datos:", {
+        email: formData.username,
+        password: formData.password,
+      })
+
+      const response = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.username,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+      console.log("Respuesta del servidor:", data)
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+
+        setAuthState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: data.user,
+        })
+
+        navigate("/dashboard")
+      } else {
+        setError(data.message || "Credenciales incorrectas")
+      }
+    } catch (err) {
+      console.error("Error completo:", err)
+      setError("Error de conexión con el servidor")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -29,6 +72,12 @@ function Login() {
           <h1 className="text-2xl font-semibold text-[#5c4b44]">POS + Inventario</h1>
           <p className="mt-1 text-sm text-gray-500">Accede a tu cuenta para continuar</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700">
+            <p>{error}</p>
+          </div>
+        )}
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
@@ -43,7 +92,7 @@ function Login() {
               value={formData.username}
               onChange={handleChange}
               className="w-full rounded-md border border-gray-200 p-3 text-sm text-gray-800 transition focus:border-[#5c4b44] focus:outline-none focus:ring-1 focus:ring-[#5c4b44]"
-              placeholder="Ingresa tu nombre de usuario"
+              placeholder="Ingresa tu correo electrónico"
             />
           </div>
 
@@ -66,9 +115,12 @@ function Login() {
           <div className="pt-2">
             <button
               type="submit"
-              className="cursor-pointer w-full rounded-md bg-[#5c4b44] py-3 text-base font-medium text-white transition hover:bg-[#4a3c37] focus:outline-none focus:ring-2 focus:ring-[#5c4b44] focus:ring-offset-2"
+              disabled={isLoading}
+              className={`w-full rounded-md bg-[#5c4b44] py-3 text-base font-medium text-white transition hover:bg-[#4a3c37] focus:outline-none focus:ring-2 focus:ring-[#5c4b44] focus:ring-offset-2 ${
+                isLoading ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
+              }`}
             >
-              Iniciar Sesión
+              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </div>
         </form>
