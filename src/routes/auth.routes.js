@@ -30,7 +30,7 @@ router.post("/login", async (req, res) => {
     const token = sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: "1d" }
     );
 
     res.json({
@@ -69,8 +69,20 @@ router.post("/register", verifyToken, checkAdminRole, async (req, res) => {
   }
 });
 
-router.get("/validate", verifyToken, (req, res) => {
-  res.json({ valid: true });
+router.get("/validate", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Token no proporcionado" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.status(200).json({ valid: true, user: decoded });
+  } catch (error) {
+    res.status(401).json({ message: "Token inválido" });
+  }
 });
 
 // Ruta para listar usuarios (solo admin)

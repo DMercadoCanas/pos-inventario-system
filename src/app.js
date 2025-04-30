@@ -8,7 +8,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Middleware CORS
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://pos-inventario-system-frontend.vercel.app",
+    credentials: true,
+  })
+);
 
 app.use((req, res, next) => {
   console.log("Body recibido:", req.body);
