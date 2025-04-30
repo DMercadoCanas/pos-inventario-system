@@ -10,8 +10,12 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware CORS
 app.use(
   cors({
-    origin: "https://pos-inventario-system-frontend.vercel.app",
-    credentials: true,
+    origin: [
+      "https://pos-inventario-system-frontend.vercel.app",
+      "http://localhost:5173", // Para desarrollo local
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
