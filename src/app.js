@@ -12,9 +12,11 @@ app.use(
   cors({
     origin: [
       "https://pos-inventario-system-frontend.vercel.app",
+      "https://pos-inventario-system-frontend-bsyhoxniw-dmercadocanas-projects.vercel.app", // Añade el dominio específico de Vercel
       "http://localhost:5173", // Para desarrollo local
+      "http://localhost:3000", // Para desarrollo local alternativo
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Incluye OPTIONS para las solicitudes preflight
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
